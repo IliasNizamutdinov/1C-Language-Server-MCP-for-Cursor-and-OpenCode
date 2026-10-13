@@ -1,0 +1,9 @@
+{
+  "language": "ru",
+  "sendErrors": "never",
+  "diagnostics": {
+    "parameters": {
+      "DeprecatedMessage": false
+    }
+  }
+}

@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bsl-language-server-mcp"
+version = "0.1.0"
+description = "Локальный MCP-сервер синтаксической проверки кода 1С через BSL Language Server"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "IliasNizamutdinov" }]
+dependencies = ["mcp>=1.9,<2"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+bsl-mcp = "bsl_mcp.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+    "integration: проверка с реальным BSL Language Server и Java",
+]

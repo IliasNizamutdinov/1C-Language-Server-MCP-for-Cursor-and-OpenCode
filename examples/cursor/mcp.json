@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "bsl-syntax": {
+      "type": "stdio",
+      "command": "${userHome}\\.bsl-mcp\\venv\\Scripts\\python.exe",
+      "args": ["-m", "bsl_mcp"],
+      "env": {
+        "BSL_LANGUAGE_SERVER_JAR": "${userHome}\\.bsl-mcp\\bsl-language-server-1.0.7-exec.jar",
+        "BSL_JAVA": "java",
+        "BSL_MCP_ALLOWED_ROOTS": "${workspaceFolder}",
+        "BSL_MCP_TIMEOUT": "180",
+        "BSL_MCP_FAIL_ON": "syntax",
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONUTF8": "1"
+      }
+    }
+  }
+}

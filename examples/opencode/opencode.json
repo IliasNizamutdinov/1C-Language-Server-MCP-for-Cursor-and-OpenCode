@@ -1,0 +1,24 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "bsl-syntax": {
+      "type": "local",
+      "command": [
+        "C:\\Users\\USER\\.bsl-mcp\\venv\\Scripts\\python.exe",
+        "-m",
+        "bsl_mcp"
+      ],
+      "enabled": true,
+      "timeout": 15000,
+      "environment": {
+        "BSL_LANGUAGE_SERVER_JAR": "C:\\Users\\USER\\.bsl-mcp\\bsl-language-server-1.0.7-exec.jar",
+        "BSL_JAVA": "java",
+        "BSL_MCP_ALLOWED_ROOTS": "C:\\Users\\USER\\src\\my-1c-project",
+        "BSL_MCP_TIMEOUT": "180",
+        "BSL_MCP_FAIL_ON": "syntax",
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONUTF8": "1"
+      }
+    }
+  }
+}
