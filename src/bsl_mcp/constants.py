@@ -22,6 +22,8 @@ BSL_COPYING_URL = (
 # ParseError — ошибка разбора. SemicolonPresence — пропущенная точка с запятой:
 # уровень Information, но для платформы 1С это синтаксическая ошибка.
 SYNTAX_DIAGNOSTIC_CODES = frozenset({"ParseError", "SemicolonPresence"})
+# Вызов члена платформы, которого нет в заданном режиме совместимости.
+COMPATIBILITY_DIAGNOSTIC_CODES = frozenset({"UnavailableMemberCall"})
 
 SUPPORTED_EXTENSIONS = frozenset({".bsl", ".os"})
 BINARY_CONFIGURATION_EXTENSIONS = frozenset({".cf", ".cfe", ".epf", ".erf"})

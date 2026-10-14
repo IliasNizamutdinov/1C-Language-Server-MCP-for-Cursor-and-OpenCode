@@ -13,6 +13,15 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from bsl_mcp.analyzer import AnalyzerNotReady, BslAnalyzer, build_configuration
+from bsl_mcp.compatibility import (
+    CompatibilityError,
+    CompatibilityMode,
+    find_project_compatibility,
+    from_request,
+    not_set,
+    target_version_from_bsl_config,
+    type_check_info,
+)
 from bsl_mcp.config import Settings
 from bsl_mcp.constants import (
     FRAGMENT_LIMITATION,
@@ -55,11 +64,20 @@ class CheckService:
         self.analyzer = BslAnalyzer(settings)
         self._slots = threading.Semaphore(settings.max_concurrent)
 
-    def check_file(self, path: str, fail_on: str | None = None) -> dict[str, object]:
+    def check_file(
+        self,
+        path: str,
+        fail_on: str | None = None,
+        compatibility_mode: str | None = None,
+    ) -> dict[str, object]:
         policy = self._policy(fail_on)
         try:
             resolved = resolve_source_file(path, self.settings.allowed_roots)
         except PathRejected as error:
+            return self._not_performed(error.message, policy, "isolated_file", [path])
+        try:
+            compatibility = self._compatibility(compatibility_mode, resolved.path)
+        except CompatibilityError as error:
             return self._not_performed(error.message, policy, "isolated_file", [path])
         return self._check_paths(
             [resolved.path],
@@ -67,9 +85,15 @@ class CheckService:
             context="isolated_file",
             limitations=[ISOLATED_FILE_NOTE],
             config_root=self._config_root_for(resolved.path),
+            compatibility=compatibility,
         )
 
-    def check_files(self, paths: list[str], fail_on: str | None = None) -> dict[str, object]:
+    def check_files(
+        self,
+        paths: list[str],
+        fail_on: str | None = None,
+        compatibility_mode: str | None = None,
+    ) -> dict[str, object]:
         policy = self._policy(fail_on)
         if not paths:
             return self._not_performed(
@@ -93,22 +117,35 @@ class CheckService:
                 [],
                 skipped=rejected,
             )
+        try:
+            compatibility = self._compatibility(compatibility_mode, accepted[0])
+        except CompatibilityError as error:
+            return self._not_performed(error.message, policy, "isolated_files", paths, skipped=rejected)
         config_root = self._config_root_for(*accepted)
-        result = self._check_paths(
+        return self._check_paths(
             accepted,
             policy,
             context="isolated_files",
             limitations=[ISOLATED_FILE_NOTE],
             config_root=config_root,
             extra_skipped=rejected,
+            compatibility=compatibility,
         )
-        return result
 
-    def check_project(self, path: str, fail_on: str | None = None) -> dict[str, object]:
+    def check_project(
+        self,
+        path: str,
+        fail_on: str | None = None,
+        compatibility_mode: str | None = None,
+    ) -> dict[str, object]:
         policy = self._policy(fail_on)
         try:
             root = resolve_project_dir(path, self.settings.allowed_roots)
         except PathRejected as error:
+            return self._not_performed(error.message, policy, "project_sources", [path])
+        try:
+            compatibility = self._compatibility(compatibility_mode, root)
+        except CompatibilityError as error:
             return self._not_performed(error.message, policy, "project_sources", [path])
         files, skipped, excluded = self._scan_project(root)
         if len(files) > self.settings.max_files:
@@ -140,6 +177,7 @@ class CheckService:
             extra_skipped=skipped,
             excluded_directory_count=excluded,
             project_root_for_names=root,
+            compatibility=compatibility,
         )
 
     def check_code(
@@ -147,8 +185,13 @@ class CheckService:
         code: str,
         file_name: str,
         fail_on: str | None = None,
+        compatibility_mode: str | None = None,
     ) -> dict[str, object]:
         policy = self._policy(fail_on)
+        try:
+            code_compatibility = self._compatibility(compatibility_mode, None)
+        except CompatibilityError as error:
+            return self._not_performed(error.message, policy, "isolated_text", [])
         if not isinstance(code, str):
             return self._not_performed(
                 "Параметр code должен быть текстом модуля.",
@@ -180,7 +223,11 @@ class CheckService:
             destination = source_dir / safe_name
             destination.write_bytes(payload)
             try:
-                config_path = self._write_config(temp_root, None)
+                config_path = self._write_config(
+                    temp_root,
+                    None,
+                    code_compatibility.target_version,
+                )
                 output = self._run(source_dir, output_dir, config_path)
                 parsed = parse_report(output.report)
             except AnalyzerNotReady as error:
@@ -214,12 +261,43 @@ class CheckService:
                 source_unchanged=True,
                 duration=output.duration_seconds,
                 excluded_directory_count=0,
+                compatibility=code_compatibility,
+                type_check=type_check_info([code]),
             )
             return result
         finally:
             shutil.rmtree(temp_root, ignore_errors=True)
             if result is not None:
                 result["temporary_files_removed"] = not temp_root.exists()
+
+    def _compatibility(self, explicit: str | None, start: Path | None) -> CompatibilityMode:
+        if explicit is not None and explicit.strip():
+            return from_request(explicit, "параметр инструмента")
+        if self.settings.compatibility_mode:
+            return from_request(self.settings.compatibility_mode, "переменная среды")
+        if start is not None:
+            found = find_project_compatibility(start, self.settings.allowed_roots)
+            if found is not None:
+                return found
+        if self.settings.user_configuration is not None:
+            target = target_version_from_bsl_config(self.settings.user_configuration)
+            if target:
+                return from_request(
+                    target,
+                    "конфигурация анализатора",
+                    str(self.settings.user_configuration),
+                )
+        return not_set()
+
+    @staticmethod
+    def _read_texts(paths: list[Path]) -> list[str]:
+        texts: list[str] = []
+        for path in paths:
+            try:
+                texts.append(path.read_text(encoding="utf-8", errors="replace"))
+            except OSError:
+                continue
+        return texts
 
     def _policy(self, fail_on: str | None) -> str:
         if fail_on is None or fail_on == "":
@@ -239,7 +317,9 @@ class CheckService:
         extra_skipped: list[dict[str, object]] | None = None,
         excluded_directory_count: int = 0,
         project_root_for_names: Path | None = None,
+        compatibility: CompatibilityMode | None = None,
     ) -> dict[str, object]:
+        selected_compatibility = compatibility or not_set()
         skipped = list(extra_skipped or [])
         unique: list[Path] = []
         seen: set[Path] = set()
@@ -277,7 +357,11 @@ class CheckService:
                 shutil.copyfile(item.source, destination)
                 mapping[destination.resolve()] = item.display
             try:
-                config_path = self._write_config(temp_root, config_root)
+                config_path = self._write_config(
+                    temp_root,
+                    config_root,
+                    selected_compatibility.target_version,
+                )
                 output = self._run(source_dir, output_dir, config_path)
                 parsed = parse_report(output.report)
                 duration = output.duration_seconds
@@ -346,6 +430,8 @@ class CheckService:
                 source_unchanged=self._same_bytes(digests),
                 duration=duration,
                 excluded_directory_count=excluded_directory_count,
+                compatibility=selected_compatibility,
+                type_check=type_check_info(self._read_texts([item.source for item in prepared])),
             )
             return result
         finally:
@@ -493,8 +579,13 @@ class CheckService:
                 return None
             current = current.parent
 
-    def _write_config(self, temp_root: Path, project_root: Path | None) -> Path:
-        config = build_configuration(self.settings, project_root)
+    def _write_config(
+        self,
+        temp_root: Path,
+        project_root: Path | None,
+        target_version: str | None = None,
+    ) -> Path:
+        config = build_configuration(self.settings, project_root, target_version)
         path = temp_root / "bsl-language-server.json"
         path.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
         return path
@@ -550,7 +641,11 @@ class CheckService:
         source_unchanged: bool,
         duration: float,
         excluded_directory_count: int,
+        compatibility: CompatibilityMode | None = None,
+        type_check: dict[str, object] | None = None,
     ) -> dict[str, object]:
+        selected_compatibility = compatibility or not_set()
+        selected_type_check = type_check or type_check_info([])
         files: list[dict[str, object]] = []
         syntax_total = 0
         analysis_errors = 0
@@ -612,6 +707,8 @@ class CheckService:
                 *limitations,
                 "Контрольная сумма хотя бы одного исходного файла изменилась во время проверки.",
             ]
+        if not selected_compatibility.applied:
+            limitations = [*limitations, selected_compatibility.note]
         summary = summarize(status, syntax_total, analysis_errors, warnings, len(analyzed))
         return {
             "status": status,
@@ -632,6 +729,8 @@ class CheckService:
             "excluded_directory_count": excluded_directory_count,
             "limitations": limitations,
             "scope_note": SCOPE_NOTE,
+            "compatibility": selected_compatibility.as_dict(),
+            "type_check": selected_type_check,
             "analyzer": self.analyzer.describe(),
             "duration_seconds": duration,
             "line_base": 1,
@@ -648,7 +747,11 @@ class CheckService:
         limitations: list[str] | None = None,
         source_unchanged: bool = True,
         excluded_directory_count: int = 0,
+        compatibility: CompatibilityMode | None = None,
+        type_check: dict[str, object] | None = None,
     ) -> dict[str, object]:
+        selected_compatibility = compatibility or not_set()
+        selected_type_check = type_check or type_check_info([])
         skipped_items = list(skipped or [])
         file_entries: list[dict[str, object]] = []
         seen = {str(item.get("path")) for item in skipped_items}
@@ -695,6 +798,8 @@ class CheckService:
             "excluded_directory_count": excluded_directory_count,
             "limitations": list(limitations or []),
             "scope_note": SCOPE_NOTE,
+            "compatibility": selected_compatibility.as_dict(),
+            "type_check": selected_type_check,
             "analyzer": self.analyzer.describe(),
             "duration_seconds": 0,
             "line_base": 1,

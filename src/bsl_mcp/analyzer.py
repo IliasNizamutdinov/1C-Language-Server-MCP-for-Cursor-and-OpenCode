@@ -82,7 +82,11 @@ def deep_merge(base: dict[str, object], override: dict[str, object]) -> dict[str
     return merged
 
 
-def build_configuration(settings: Settings, project_root: Path | None) -> dict[str, object]:
+def build_configuration(
+    settings: Settings,
+    project_root: Path | None,
+    target_version: str | None = None,
+) -> dict[str, object]:
     config = default_configuration()
     if settings.user_configuration is not None:
         config = deep_merge(config, load_configuration_file(settings.user_configuration))
@@ -90,6 +94,12 @@ def build_configuration(settings: Settings, project_root: Path | None) -> dict[s
         local = project_root / ".bsl-language-server.json"
         if local.is_file():
             config = deep_merge(config, load_configuration_file(local))
+    if target_version:
+        platform = config.get("v8platform")
+        platform_config = dict(platform) if isinstance(platform, dict) else {}
+        platform_config["enabled"] = True
+        platform_config["targetVersion"] = target_version
+        config["v8platform"] = platform_config
     # Отправка текстов ошибок разработчикам анализатора всегда выключена.
     config["sendErrors"] = "never"
     return config
