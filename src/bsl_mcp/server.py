@@ -24,7 +24,11 @@ INSTRUCTIONS = (
     "После создания или правки модуля вызови проверку, исправь найденные синтаксические ошибки "
     "и повтори проверку. Статус passed означает, что анализатор не нашёл синтаксических ошибок; "
     "это не подтверждение бизнес-логики. check_bsl_code проверяет переданный текст отдельно "
-    "от конфигурации, поэтому при отсутствии синтаксических ошибок его статус будет limited."
+    "от конфигурации, поэтому при отсутствии синтаксических ошибок его статус будет limited. "
+    "Режим совместимости бери из Configuration.xml или параметра compatibility_mode "
+    "(8.3.24, 8.5, Version8_3_24). Вызов члена платформы, которого нет в этом режиме, "
+    "делает проверку не пройденной. Синтаксис «Параметр: Тип» анализатор 1.0.7 "
+    "считает ошибкой разбора на любой версии и не проверяет соответствие значений типу."
 )
 
 _READ_ONLY = ToolAnnotations(
@@ -53,13 +57,19 @@ def build_server(settings: Settings) -> FastMCP:
             "Проверить синтаксис одного существующего файла .bsl или .os через BSL Language Server. "
             "Файл только читается. Передай абсолютный путь. "
             "Используй после чтения модуля и после его изменения. "
-            "Не используй для текста, который ещё не записан на диск: для него есть check_bsl_code."
+            "Не используй для текста, который ещё не записан на диск: для него есть check_bsl_code. "
+            "compatibility_mode — режим совместимости конфигурации, например 8.3.24, 8.5 или Version8_3_24. "
+            "Если не передан, сервер ищет CompatibilityMode в Configuration.xml проекта."
         ),
         annotations=_READ_ONLY,
         structured_output=False,
     )
-    async def check_bsl_file(path: str, fail_on: FailOn | None = None) -> str:
-        payload = await asyncio.to_thread(service.check_file, path, fail_on)
+    async def check_bsl_file(
+        path: str,
+        fail_on: FailOn | None = None,
+        compatibility_mode: str | None = None,
+    ) -> str:
+        payload = await asyncio.to_thread(service.check_file, path, fail_on, compatibility_mode)
         return _dump(payload)
 
     @server.tool(
@@ -68,13 +78,25 @@ def build_server(settings: Settings) -> FastMCP:
             "Проверить переданный текст модуля 1С или OneScript, не записывая его в проект. "
             "code — полный текст, file_name — имя вида Module.bsl или script.os без каталога. "
             "Проверка фрагмента ограничена: нет контекста конфигурации и остальных модулей. "
-            "Если синтаксических ошибок нет, статус будет limited, а не passed."
+            "Если синтаксических ошибок нет, статус будет limited, а не passed. "
+            "compatibility_mode задаёт версию платформы для этой проверки, потому что у текста нет Configuration.xml."
         ),
         annotations=_READ_ONLY,
         structured_output=False,
     )
-    async def check_bsl_code(code: str, file_name: str, fail_on: FailOn | None = None) -> str:
-        payload = await asyncio.to_thread(service.check_code, code, file_name, fail_on)
+    async def check_bsl_code(
+        code: str,
+        file_name: str,
+        fail_on: FailOn | None = None,
+        compatibility_mode: str | None = None,
+    ) -> str:
+        payload = await asyncio.to_thread(
+            service.check_code,
+            code,
+            file_name,
+            fail_on,
+            compatibility_mode,
+        )
         return _dump(payload)
 
     @server.tool(
@@ -88,8 +110,12 @@ def build_server(settings: Settings) -> FastMCP:
         annotations=_READ_ONLY,
         structured_output=False,
     )
-    async def check_bsl_files(paths: list[str], fail_on: FailOn | None = None) -> str:
-        payload = await asyncio.to_thread(service.check_files, paths, fail_on)
+    async def check_bsl_files(
+        paths: list[str],
+        fail_on: FailOn | None = None,
+        compatibility_mode: str | None = None,
+    ) -> str:
+        payload = await asyncio.to_thread(service.check_files, paths, fail_on, compatibility_mode)
         return _dump(payload)
 
     @server.tool(
@@ -99,13 +125,19 @@ def build_server(settings: Settings) -> FastMCP:
             "Каталог должен входить в BSL_MCP_ALLOWED_ROOTS. "
             "Служебные каталоги (.git, node_modules, сборки, виртуальные окружения) пропускаются. "
             "Двоичные .cf, .cfe, .epf и .erf не анализируются: нужна выгрузка исходников. "
-            "Каталоги за пределами разрешённой области не обходятся."
+            "Каталоги за пределами разрешённой области не обходятся. "
+            "Режим совместимости читается из Configuration.xml или CompatibilityMode в каталоге. "
+            "Параметр compatibility_mode его перекрывает."
         ),
         annotations=_READ_ONLY,
         structured_output=False,
     )
-    async def check_bsl_project(path: str, fail_on: FailOn | None = None) -> str:
-        payload = await asyncio.to_thread(service.check_project, path, fail_on)
+    async def check_bsl_project(
+        path: str,
+        fail_on: FailOn | None = None,
+        compatibility_mode: str | None = None,
+    ) -> str:
+        payload = await asyncio.to_thread(service.check_project, path, fail_on, compatibility_mode)
         return _dump(payload)
 
     return server
@@ -137,6 +169,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Проверить каталог исходников и напечатать JSON",
     )
     parser.add_argument("--code-file", metavar="NAME", help="Имя файла для --code, например Module.bsl")
+    parser.add_argument(
+        "--compatibility-mode",
+        metavar="VERSION",
+        help="Режим совместимости, например 8.3.24, 8.5 или Version8_3_24",
+    )
     parser.add_argument("--version", action="store_true", help="Показать версию адаптера")
     args = parser.parse_args(argv)
     if args.version:
@@ -150,18 +187,25 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     service = CheckService(settings)
     if args.check:
-        payload = service.check_file(args.check)
+        payload = service.check_file(args.check, compatibility_mode=args.compatibility_mode)
         json.dump(payload, sys.stdout, ensure_ascii=False, indent=2)
         sys.stdout.write("\n")
         return _exit_code(payload)
     if args.check_project:
-        payload = service.check_project(args.check_project)
+        payload = service.check_project(
+            args.check_project,
+            compatibility_mode=args.compatibility_mode,
+        )
         json.dump(payload, sys.stdout, ensure_ascii=False, indent=2)
         sys.stdout.write("\n")
         return _exit_code(payload)
     if args.code_file:
         code = sys.stdin.read()
-        payload = service.check_code(code, args.code_file)
+        payload = service.check_code(
+            code,
+            args.code_file,
+            compatibility_mode=args.compatibility_mode,
+        )
         json.dump(payload, sys.stdout, ensure_ascii=False, indent=2)
         sys.stdout.write("\n")
         return _exit_code(payload)
