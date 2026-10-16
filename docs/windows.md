@@ -10,21 +10,37 @@ git --version
 
 Ожидается строка вида `git version 2.x`. Если команда не найдена, установите Git с https://git-scm.com/download/win и откройте новое окно PowerShell.
 
-## 2. Java
+## 2. Java 21
 
-Нужна Java 17 или новее. Проверен запуск на Java 21.
+Для файла `bsl-language-server-1.0.7-exec.jar` нужна Java 21 или новее. Эта сборка скомпилирована в class-файл версии 65.0. Java 17 понимает class-файлы только до версии 61.0 и завершается ошибкой `UnsupportedClassVersionError`. В документации BSL Language Server Java 17 указана как минимум для более ранних сборок, но проверенный jar 1.0.7 на Java 17 не запускается.
 
 ```powershell
 java -version
 ```
 
-Ожидается `openjdk version "21..."` или другая сборка 17, 21 либо новее. Если команды нет, скачайте Temurin 21 JDK с https://adoptium.net/temurin/releases/?version=21 и снова откройте PowerShell. Проверка через winget, если он установлен:
+Ожидается строка `openjdk version "21..."` или более новая. Версия `17` для этого jar не подходит.
+
+Если Java 21 ещё нет, установите её с https://adoptium.net/temurin/releases/?version=21 или Microsoft Build of OpenJDK 21: https://learn.microsoft.com/java/openjdk/download. Через winget сначала посмотрите доступный пакет JDK 21 и установите его:
 
 ```powershell
-winget search Temurin
+winget search OpenJDK
 ```
 
-Устанавливайте найденный пакет JDK 21, а не произвольный идентификатор из этой инструкции, если поиск показал другое имя.
+После установки закройте PowerShell и откройте новое окно. Снова выполните `java -version`.
+
+Если команда по-прежнему показывает 17, в `PATH` первой стоит старая Java. Найдите `java.exe` из JDK 21:
+
+```powershell
+where.exe java
+Get-ChildItem "C:\Program Files\Microsoft","C:\Program Files\Eclipse Adoptium" -Recurse -Filter java.exe -ErrorAction SilentlyContinue
+```
+
+Дальше указывайте найденный файл явно. Путь ниже — образец, подставьте каталог, который показала предыдущая команда:
+
+```powershell
+$env:BSL_JAVA = "<полный путь к java.exe из JDK 21>"
+& $env:BSL_JAVA -version
+```
 
 ## 3. Python
 
@@ -57,7 +73,11 @@ Invoke-WebRequest -Uri "https://github.com/1c-syntax/bsl-language-server/release
 java -jar $jar version
 ```
 
-Ожидается `version: 1.0.7`.
+Ожидается `version: 1.0.7`. Если вместо этого появляется `UnsupportedClassVersionError`, jar скачан правильно, но его запускает Java 17. Вернитесь к шагу 2 и добейтесь, чтобы `java -version` показывала 21. Если для JDK 21 задана переменная `BSL_JAVA`, проверяйте так:
+
+```powershell
+& $env:BSL_JAVA -jar $jar version
+```
 
 ## 5. Клонирование и виртуальное окружение
 

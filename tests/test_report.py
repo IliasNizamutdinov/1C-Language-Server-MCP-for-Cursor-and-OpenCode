@@ -1,4 +1,19 @@
+from bsl_mcp.analyzer import explain_java_too_old
 from bsl_mcp.report import file_status, parse_report, public_diagnostic
+
+
+def test_java_17_class_version_is_explained() -> None:
+    message = (
+        "Exception in thread \"main\" java.lang.UnsupportedClassVersionError: "
+        "com/github/_1c_syntax/bsl/languageserver/MainApplication has been compiled "
+        "by a more recent version of the Java Runtime (class file version 65.0), "
+        "this version of the Java Runtime only recognizes class file versions up to 61.0"
+    )
+    explanation = explain_java_too_old("", message)
+    assert explanation is not None
+    assert "Java 21" in explanation
+    assert "Java 17" in explanation
+    assert explain_java_too_old("version: 1.0.7", "") is None
 
 
 def test_positions_are_one_based() -> None:

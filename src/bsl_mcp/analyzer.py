@@ -40,6 +40,24 @@ def _tail(text: str, limit: int = 2000) -> str:
     return compact[-limit:]
 
 
+def explain_java_too_old(stdout: str, stderr: str) -> str | None:
+    """Пояснить ошибку, если jar 1.0.7 запущен на Java старше 21."""
+
+    combined = f"{stdout}\n{stderr}"
+    if "UnsupportedClassVersionError" not in combined and "class file version 65" not in combined:
+        return None
+    return (
+        "Установленная Java слишком старая для BSL Language Server 1.0.7. "
+        "Файл bsl-language-server-1.0.7-exec.jar собран для Java 21 "
+        "(версия class-файла 65.0). Java 17 запускает class-файлы только до версии 61.0, "
+        "поэтому появляется UnsupportedClassVersionError. "
+        "Установите JDK 21 и откройте новое окно PowerShell. "
+        "Команда java -version должна показать версию 21. "
+        "Если в системе остаются и 17, и 21, укажите полный путь к java.exe из JDK 21 "
+        "в переменной BSL_JAVA."
+    )
+
+
 def default_configuration() -> dict[str, object]:
     return {
         "language": "ru",
@@ -129,9 +147,10 @@ class BslAnalyzer:
             return
         if not executable_exists(self.settings.java):
             raise AnalyzerNotReady(
-                "Java не найдена. Для BSL Language Server нужна Java 17 или новее, "
-                "рекомендуется Java 21. Установите Java и проверьте команду java -version. "
-                "При необходимости укажите полный путь в переменной BSL_JAVA."
+                "Java не найдена. Для сборки BSL Language Server 1.0.7 нужна Java 21 или новее: "
+                "jar собран с class-файлом версии 65.0, Java 17 его не запускает. "
+                "Проверьте команду java -version. "
+                "При необходимости укажите полный путь к java.exe из JDK 21 в переменной BSL_JAVA."
             )
         jar = self.settings.jar
         if jar is None:
@@ -190,6 +209,9 @@ class BslAnalyzer:
             )
         report_path = output_dir / "bsl-json.json"
         if completed.exit_code != 0 or not report_path.is_file():
+            java_hint = explain_java_too_old(completed.stdout, completed.stderr)
+            if java_hint:
+                raise AnalyzerNotReady(java_hint)
             details = stderr_tail or stdout_tail or "анализатор не записал bsl-json.json"
             raise AnalyzerNotReady(
                 "Анализатор завершился с ошибкой "
