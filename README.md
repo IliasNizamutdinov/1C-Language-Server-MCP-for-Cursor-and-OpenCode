@@ -66,7 +66,7 @@ BSL Language Server — анализатор языка. Он разбирает
 ## Ограничения, подтверждённые на версии 1.0.7
 
 - Проверенная сборка: `bsl-language-server-1.0.7-exec.jar`. Другой релиз может изменить сообщения и коды.
-- Нужна Java 17 или новее. Запуск проверен на Java 21.
+- Для jar 1.0.7 нужна Java 21 или новее. Java 17 выдаёт `UnsupportedClassVersionError`: class-файл сборки имеет версию 65.0.
 - Анализируются `.bsl` и `.os`. Файл копируется отдельно от XML метаданных, поэтому диагностики, которым нужна конфигурация, могут быть неполными.
 - Пустой файл анализатор считает допустимым.
 - Файл из одной строки `КонецПроцедуры` в версии 1.0.7 не получает `ParseError`. Это ограничение анализатора, а не успешная проверка платформой.
@@ -100,7 +100,7 @@ java -version
 python --version
 ```
 
-Ожидается версия Git, Java 17+ (лучше 21) и Python 3.11+. Если `java` или `python` не находятся, установите Temurin 21 JDK с https://adoptium.net/temurin/releases/?version=21 и Python с https://www.python.org/downloads/windows/ с флажком добавления в `PATH`. Для поиска пакета Java в winget используйте `winget search Temurin` и ставьте тот идентификатор, который покажет поиск.
+Ожидается Git, Java 21 или новее и Python 3.11+. Java 17 для jar 1.0.7 не подходит: `java -jar ... version` завершается `UnsupportedClassVersionError`. Установите JDK 21 с https://adoptium.net/temurin/releases/?version=21 или Microsoft Build of OpenJDK 21 с https://learn.microsoft.com/java/openjdk/download. Чтобы увидеть пакет в winget, выполните `winget search OpenJDK` и установите JDK 21. Python: https://www.python.org/downloads/windows/, с флажком добавления в `PATH`. После установки Java откройте новое окно PowerShell и снова выполните `java -version`. Если там остаётся 17, укажите полный путь к `java.exe` из JDK 21 в переменной `BSL_JAVA`.
 
 ### Анализатор
 
