@@ -1,6 +1,6 @@
 # Подключение к Cursor
 
-Сначала выполните установку из [windows.md](windows.md): Java, Python, виртуальное окружение и jar BSL Language Server 1.0.7.
+Сначала выполните установку из [windows.md](windows.md). Нужна Java 21, не Java 17: `java -version` должна показать версию 21. Также нужны Python, виртуальное окружение и jar BSL Language Server 1.0.7.
 
 ## Где лежит конфигурация
 

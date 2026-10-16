@@ -66,7 +66,7 @@ BSL Language Server — анализатор языка. Он разбирает
 ## Ограничения, подтверждённые на версии 1.0.7
 
 - Проверенная сборка: `bsl-language-server-1.0.7-exec.jar`. Другой релиз может изменить сообщения и коды.
-- Для jar 1.0.7 нужна Java 21 или новее. Java 17 выдаёт `UnsupportedClassVersionError`: class-файл сборки имеет версию 65.0.
+- Нужна Java 21. Jar 1.0.7 собран под неё (class-файл версии 65.0). Java 17 выдаёт `UnsupportedClassVersionError`.
 - Анализируются `.bsl` и `.os`. Файл копируется отдельно от XML метаданных, поэтому диагностики, которым нужна конфигурация, могут быть неполными.
 - Пустой файл анализатор считает допустимым.
 - Файл из одной строки `КонецПроцедуры` в версии 1.0.7 не получает `ParseError`. Это ограничение анализатора, а не успешная проверка платформой.
@@ -92,7 +92,7 @@ BSL Language Server разработан не автором этого репо
 
 Подробная копия с теми же командами: [docs/windows.md](docs/windows.md).
 
-### Git, Java и Python
+### Git, Java 21 и Python
 
 ```powershell
 git --version
@@ -100,7 +100,7 @@ java -version
 python --version
 ```
 
-Ожидается Git, Java 21 или новее и Python 3.11+. Java 17 для jar 1.0.7 не подходит: `java -jar ... version` завершается `UnsupportedClassVersionError`. Установите JDK 21 с https://adoptium.net/temurin/releases/?version=21 или Microsoft Build of OpenJDK 21 с https://learn.microsoft.com/java/openjdk/download. Чтобы увидеть пакет в winget, выполните `winget search OpenJDK` и установите JDK 21. Python: https://www.python.org/downloads/windows/, с флажком добавления в `PATH`. После установки Java откройте новое окно PowerShell и снова выполните `java -version`. Если там остаётся 17, укажите полный путь к `java.exe` из JDK 21 в переменной `BSL_JAVA`.
+Ожидается Git, Java 21 и Python 3.11+. Команда `java -version` должна показать версию 21. Java 17 для jar 1.0.7 не подходит: `java -jar ... version` завершается `UnsupportedClassVersionError`. Установите JDK 21 с https://adoptium.net/temurin/releases/?version=21 или Microsoft Build of OpenJDK 21 с https://learn.microsoft.com/java/openjdk/download. Чтобы увидеть пакет в winget, выполните `winget search OpenJDK` и установите JDK 21. Python: https://www.python.org/downloads/windows/, с флажком добавления в `PATH`. После установки Java откройте новое окно PowerShell и снова выполните `java -version`. Если там не 21, укажите полный путь к `java.exe` из JDK 21 в переменной `BSL_JAVA`.
 
 ### Анализатор
 
@@ -161,7 +161,7 @@ python -m bsl_mcp
 | Переменная | Назначение | По умолчанию |
 | --- | --- | --- |
 | `BSL_LANGUAGE_SERVER_JAR` | Путь к `*-exec.jar` | не задан, проверка не выполняется |
-| `BSL_JAVA` | Исполняемый файл Java | `java` |
+| `BSL_JAVA` | Полный путь к `java.exe` из JDK 21. Если не задан, используется команда `java`, и она тоже должна быть версии 21 | `java` |
 | `BSL_JAVA_OPTS` | Аргументы JVM одной строкой | `-Dfile.encoding=UTF-8 -Xmx768m` |
 | `BSL_MCP_ALLOWED_ROOTS` | Разрешённые каталоги через `;` в Windows и `:` в Linux | текущий каталог процесса |
 | `BSL_MCP_TIMEOUT` | Таймаут анализатора, секунды | `180` |
@@ -269,7 +269,7 @@ python -m bsl_mcp
 
 Таблица с причинами и действиями: [docs/troubleshooting.md](docs/troubleshooting.md).
 
-Кратко: сервер не стартует — проверьте `python -m bsl_mcp --version`; нет Java — `java -version` и переменная `BSL_JAVA`; нет анализатора — путь к `*-exec.jar` и команда `version`; клиент не видит инструменты — сверьте формат своего клиента и журнал; таймаут — увеличьте `BSL_MCP_TIMEOUT` и сузьте каталог; файл `.cf` — сначала выгрузите исходники.
+Кратко: сервер не стартует — проверьте `python -m bsl_mcp --version`; нет Java 21 — `java -version` должна показать 21, иначе укажите `java.exe` из JDK 21 в `BSL_JAVA`; нет анализатора — путь к `*-exec.jar` и команда `version`; клиент не видит инструменты — сверьте формат своего клиента и журнал; таймаут — увеличьте `BSL_MCP_TIMEOUT` и сузьте каталог; файл `.cf` — сначала выгрузите исходники.
 
 ## Разработка
 
@@ -281,4 +281,4 @@ $env:BSL_LANGUAGE_SERVER_JAR = "$env:USERPROFILE\.bsl-mcp\bsl-language-server-1.
 python -m pytest
 ```
 
-Модульные тесты подменяют процесс анализатора и проверяют пути, таймаут, очистку временных файлов и отсутствие ложного успеха. Интеграционные тесты требуют Java и официальный jar. Они гоняют настоящие модули, в том числе полный вызов инструментов через STDIO. Если jar не указан, интеграционный тест завершается ошибкой, а не молчаливым пропуском.
+Модульные тесты подменяют процесс анализатора и проверяют пути, таймаут, очистку временных файлов и отсутствие ложного успеха. Интеграционные тесты требуют Java 21 и официальный jar. Они гоняют настоящие модули, в том числе полный вызов инструментов через STDIO. Если jar не указан, интеграционный тест завершается ошибкой, а не молчаливым пропуском.

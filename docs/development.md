@@ -26,13 +26,13 @@ python scripts\download_bsl_language_server.py $env:BSL_LANGUAGE_SERVER_JAR
 
 ## Тесты
 
-Модульные тесты не требуют Java:
+Для интеграционных тестов нужна Java 21: `java -version` должна показать версию 21. Модульные тесты Java не запускают:
 
 ```powershell
 python -m pytest tests/test_paths.py tests/test_report.py tests/test_service.py
 ```
 
-Интеграционные тесты запускают BSL Language Server. Без jar они завершаются ошибкой, а не тихим пропуском.
+Интеграционные тесты запускают BSL Language Server на Java 21. Без jar или без Java 21 они завершаются ошибкой, а не тихим пропуском.
 
 ```powershell
 $env:BSL_LANGUAGE_SERVER_JAR = "$env:USERPROFILE\.bsl-mcp\bsl-language-server-1.0.7-exec.jar"
@@ -44,7 +44,7 @@ python -m pytest
 1. Откройте https://github.com/1c-syntax/bsl-language-server/releases.
 2. Скачайте новый `bsl-language-server-<версия>-exec.jar`.
 3. Укажите его в `BSL_LANGUAGE_SERVER_JAR`.
-4. Выполните `java -jar <файл> version`.
+4. Выполните `java -jar <файл> version` командой Java 21.
 5. Прогоните интеграционные тесты. Если изменились коды диагностики или формат `bsl-json.json`, обновите разбор в `src/bsl_mcp/report.py` и документацию.
 6. Обновите версию, адрес, SHA256 и лицензионное уведомление, если лицензия изменилась.
 

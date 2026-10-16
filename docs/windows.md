@@ -12,13 +12,13 @@ git --version
 
 ## 2. Java 21
 
-Для файла `bsl-language-server-1.0.7-exec.jar` нужна Java 21 или новее. Эта сборка скомпилирована в class-файл версии 65.0. Java 17 понимает class-файлы только до версии 61.0 и завершается ошибкой `UnsupportedClassVersionError`. В документации BSL Language Server Java 17 указана как минимум для более ранних сборок, но проверенный jar 1.0.7 на Java 17 не запускается.
+Для файла `bsl-language-server-1.0.7-exec.jar` нужна Java 21. Эта сборка скомпилирована в class-файл версии 65.0. Java 17 понимает class-файлы только до версии 61.0 и завершается ошибкой `UnsupportedClassVersionError`. В документации BSL Language Server Java 17 указана как минимум для более ранних сборок, но проверенный jar 1.0.7 запускается на Java 21.
 
 ```powershell
 java -version
 ```
 
-Ожидается строка `openjdk version "21..."` или более новая. Версия `17` для этого jar не подходит.
+Ожидается строка `openjdk version "21..."`. Другая версия, в том числе 17, для этого jar не подходит.
 
 Если Java 21 ещё нет, установите её с https://adoptium.net/temurin/releases/?version=21 или Microsoft Build of OpenJDK 21: https://learn.microsoft.com/java/openjdk/download. Через winget сначала посмотрите доступный пакет JDK 21 и установите его:
 
