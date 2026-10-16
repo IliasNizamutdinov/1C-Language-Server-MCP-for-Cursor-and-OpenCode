@@ -13,7 +13,7 @@
 
 ## Исправление требования к Java
 
-Сборка `bsl-language-server-1.0.7-exec.jar` скомпилирована для Java 21 (class-файл версии 65.0). Java 17 её не запускает и пишет `UnsupportedClassVersionError`. Контрольная сумма jar при этом может быть верной.
+Для `bsl-language-server-1.0.7-exec.jar` нужна Java 21. Сборка скомпилирована в class-файл версии 65.0. Java 17 её не запускает и пишет `UnsupportedClassVersionError`. Контрольная сумма jar при этом может быть верной. Во всех инструкциях указана Java 21.
 
 ## 0.1.0 — первый выпуск
 

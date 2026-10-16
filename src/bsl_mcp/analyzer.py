@@ -147,7 +147,7 @@ class BslAnalyzer:
             return
         if not executable_exists(self.settings.java):
             raise AnalyzerNotReady(
-                "Java не найдена. Для сборки BSL Language Server 1.0.7 нужна Java 21 или новее: "
+                "Java не найдена. Для сборки BSL Language Server 1.0.7 нужна Java 21: "
                 "jar собран с class-файлом версии 65.0, Java 17 его не запускает. "
                 "Проверьте команду java -version. "
                 "При необходимости укажите полный путь к java.exe из JDK 21 в переменной BSL_JAVA."

@@ -1,6 +1,6 @@
 # Подключение к OpenCode
 
-Сначала установите Java, Python, виртуальное окружение и BSL Language Server по [windows.md](windows.md).
+Сначала установите Java 21, Python, виртуальное окружение и BSL Language Server по [windows.md](windows.md). Java 17 этот анализатор не запускает: `java -version` должна показать версию 21.
 
 Документация OpenCode: https://opencode.ai/docs/mcp-servers/. Локальный сервер задаётся в объекте `mcp` полем `type: "local"` и массивом `command`. Это не формат Cursor `mcpServers`.
 
