@@ -16,23 +16,15 @@ git --version
 
 Установите Microsoft Build of OpenJDK. Ссылка открывается в отдельном окне: <a href="https://learn.microsoft.com/java/openjdk/download" target="_blank" rel="noopener noreferrer">https://learn.microsoft.com/java/openjdk/download</a>. На странице выберите JDK 21 или новее для Windows x64 и установите его.
 
-Проверьте, какая Java сейчас первая в системе:
+Сначала посмотрите, что вызывает команда `java`:
 
 ```powershell
 java -version
 ```
 
-Если в первой строке версия 21 или выше, этот шаг уже выполнен. Тогда запомните путь к этой `java.exe` и сохраните его:
+Если здесь `17`, не сохраняйте этот путь. Строка `(Get-Command java).Source` указывает на ту же Java 17, поэтому после `$env:BSL_JAVA = (Get-Command java).Source` команда `& $env:BSL_JAVA -version` снова печатает 17. Версия так не меняется.
 
-```powershell
-$env:BSL_JAVA = (Get-Command java).Source
-[Environment]::SetEnvironmentVariable("BSL_JAVA", $env:BSL_JAVA, "User")
-& $env:BSL_JAVA -version
-```
-
-Ожидается строка `openjdk version "21..."` или старше, например `25...`.
-
-Если Java уже установлена, но `java -version` показывает 17 или другую версию ниже 21, менять нужно путь, а не скачанный jar. Команда `java` в этом случае берёт старую версию, потому что её каталог стоит в `PATH` раньше нового. После установки JDK 21 или новее выполните в том же окне:
+JDK 21 или новее нужно установить по ссылке выше, если его ещё нет. После установки закройте PowerShell, откройте новое окно и выполните весь блок ниже. Он ищет каталог `C:\Program Files\Microsoft\jdk-21...` (или новее) и записывает путь к его `java.exe`. Старую Java 17 он не выбирает.
 
 ```powershell
 $jdk = Get-ChildItem "C:\Program Files\Microsoft" -Directory -Filter "jdk-*" -ErrorAction SilentlyContinue |
@@ -40,7 +32,7 @@ $jdk = Get-ChildItem "C:\Program Files\Microsoft" -Directory -Filter "jdk-*" -Er
   Sort-Object { if ($_.Name -match '^jdk-(\d+)') { [int]$Matches[1] } } -Descending |
   Select-Object -First 1
 if (-not $jdk) {
-  throw "В C:\Program Files\Microsoft нет JDK 21 или новее. Установите его по ссылке выше и откройте новое окно PowerShell."
+  throw "JDK 21 или новее в C:\Program Files\Microsoft не найден. Установите его по ссылке выше и откройте новое окно PowerShell. Не записывайте в BSL_JAVA путь от команды java, пока java -version показывает 17."
 }
 $env:BSL_JAVA = Join-Path $jdk.FullName "bin\java.exe"
 [Environment]::SetEnvironmentVariable("BSL_JAVA", $env:BSL_JAVA, "User")
@@ -49,10 +41,13 @@ $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if ($userPath -notlike "$bin*") {
   [Environment]::SetEnvironmentVariable("Path", "$bin;$userPath", "User")
 }
+Write-Host "Сохранён путь: $env:BSL_JAVA"
 & $env:BSL_JAVA -version
 ```
 
-Ожидается `openjdk version "21..."` или новее. Закройте PowerShell и откройте новое окно: только тогда `java -version` начнёт показывать ту же версию. Если снова видна старая версия, для всех следующих команд используйте `& $env:BSL_JAVA`, а не `java`.
+Ожидается `openjdk version "21..."` или новее, например `25...`, и строка `Сохранён путь:` с каталогом `jdk-21` или старше. Если снова видна версия 17, блок выбрал не тот файл: смотрите путь в строке `Сохранён путь`.
+
+Закройте PowerShell и откройте новое окно. Команда `java -version` начнёт показывать 21 или новее только после этого. Если в новом окне по-прежнему 17, для проверки анализатора используйте `& $env:BSL_JAVA`, а не `java`.
 
 ## 3. Python
 
@@ -130,7 +125,28 @@ $env:BSL_MCP_ALLOWED_ROOTS = (Get-Location).Path
 
 ## 7. Первая проверка
 
-Из корня клонированного репозитория, с активированным `.venv`:
+Окружение `.venv` действует только в том окне PowerShell, где его включили. После закрытия окна оно выключается. В новом окне включите его снова и перейдите в каталог репозитория. Приглашение должно начаться с `(.venv)`.
+
+```powershell
+Set-Location "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
+.\.venv\Scripts\Activate.ps1
+```
+
+Если PowerShell пишет, что выполнение сценариев отключено, один раз для этого окна выполните:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+Set-Location "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
+.\.venv\Scripts\Activate.ps1
+```
+
+В этом же новом окне снова задайте каталог, который разрешено проверять. Путь к jar уже сохранён на шаге 6 и подхватится сам, если окно открыто после той команды.
+
+```powershell
+$env:BSL_MCP_ALLOWED_ROOTS = (Get-Location).Path
+```
+
+Дальше, уже с `(.venv)` в приглашении:
 
 ```powershell
 python -m bsl_mcp --check .\examples\bsl\valid-module.bsl
