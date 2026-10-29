@@ -51,8 +51,8 @@ def explain_java_too_old(stdout: str, stderr: str) -> str | None:
         "Файл bsl-language-server-1.0.7-exec.jar собран для Java 21 "
         "(версия class-файла 65.0). Java 17 запускает class-файлы только до версии 61.0, "
         "поэтому появляется UnsupportedClassVersionError. "
-        "Установите JDK 21 и откройте новое окно PowerShell. "
-        "Команда java -version должна показать версию 21. "
+        "Установите JDK 21 или новее и откройте новое окно PowerShell. "
+        "Команда java -version должна показать версию 21 или выше. "
         "Если в системе остаются и 17, и 21, укажите полный путь к java.exe из JDK 21 "
         "в переменной BSL_JAVA."
     )
@@ -147,7 +147,7 @@ class BslAnalyzer:
             return
         if not executable_exists(self.settings.java):
             raise AnalyzerNotReady(
-                "Java не найдена. Для сборки BSL Language Server 1.0.7 нужна Java 21: "
+                "Java не найдена. Для сборки BSL Language Server 1.0.7 нужна Java 21 или новее: "
                 "jar собран с class-файлом версии 65.0, Java 17 его не запускает. "
                 "Проверьте команду java -version. "
                 "При необходимости укажите полный путь к java.exe из JDK 21 в переменной BSL_JAVA."
