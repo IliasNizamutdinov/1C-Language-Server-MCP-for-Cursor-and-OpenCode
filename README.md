@@ -231,10 +231,11 @@ python -m bsl_mcp
   "mcpServers": {
     "bsl-syntax": {
       "type": "stdio",
-      "command": "${userHome}\\.bsl-mcp\\venv\\Scripts\\python.exe",
+      "command": "${userHome}\\1C-Language-Server-MCP-for-Cursor-and-OpenCode\\.venv\\Scripts\\python.exe",
       "args": ["-m", "bsl_mcp"],
       "env": {
         "BSL_LANGUAGE_SERVER_JAR": "${userHome}\\.bsl-mcp\\bsl-language-server-1.0.7-exec.jar",
+        "BSL_JAVA": "${env:BSL_JAVA}",
         "BSL_MCP_ALLOWED_ROOTS": "${workspaceFolder}",
         "PYTHONIOENCODING": "utf-8",
         "PYTHONUTF8": "1"
@@ -261,7 +262,7 @@ python -m bsl_mcp
     "bsl-syntax": {
       "type": "local",
       "command": [
-        "C:\\Users\\USER\\.bsl-mcp\\venv\\Scripts\\python.exe",
+        "C:\\Users\\USER\\1C-Language-Server-MCP-for-Cursor-and-OpenCode\\.venv\\Scripts\\python.exe",
         "-m",
         "bsl_mcp"
       ],
@@ -269,6 +270,7 @@ python -m bsl_mcp
       "timeout": 15000,
       "environment": {
         "BSL_LANGUAGE_SERVER_JAR": "C:\\Users\\USER\\.bsl-mcp\\bsl-language-server-1.0.7-exec.jar",
+        "BSL_JAVA": "ПОЛНЫЙ_ПУТЬ_К_JAVA_EXE_ИЗ_JDK_21",
         "BSL_MCP_ALLOWED_ROOTS": "C:\\Users\\USER\\src\\my-1c-project",
         "PYTHONIOENCODING": "utf-8",
         "PYTHONUTF8": "1"
