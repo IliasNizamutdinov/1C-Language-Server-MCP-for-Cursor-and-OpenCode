@@ -1,5 +1,6 @@
-# Записывает %USERPROFILE%\.cursor\mcp.json для сервера bsl-syntax.
-# Берёт только те python.exe и java.exe, которые реально есть на диске.
+# Writes %USERPROFILE%\.cursor\mcp.json for the bsl-syntax server.
+# Uses only python.exe and java.exe that exist on disk.
+# Messages are ASCII so Windows PowerShell 5.1 can parse the file.
 
 $ErrorActionPreference = "Stop"
 
@@ -54,21 +55,21 @@ function Find-Java21OrNewer {
 
 $python = Find-RepoPython
 if (-not $python) {
-  Write-Host "Файл .venv\Scripts\python.exe не найден."
-  Write-Host "Cursor поэтому пишет: Системе не удается найти указанный путь."
-  Write-Host "Сначала из домашней папки, не из C:\WINDOWS\system32, выполните шаг 5 инструкции docs/windows.md."
+  Write-Host "python.exe from .venv was not found."
+  Write-Host "Cursor reports: The system cannot find the path specified."
+  Write-Host "Finish step 5 of docs/windows.md from your home folder, not from C:\WINDOWS\system32."
   exit 1
 }
 
 $jar = Join-Path $env:USERPROFILE ".bsl-mcp\bsl-language-server-1.0.7-exec.jar"
 if (-not (Test-Path -LiteralPath $jar)) {
-  Write-Host "Не найден jar: $jar"
+  Write-Host "Jar not found: $jar"
   exit 1
 }
 
 $javaExe = Find-Java21OrNewer
 if (-not $javaExe) {
-  Write-Host "JDK 21 или новее не найден. Текущая команда java указывает на старую версию, её путь сохранять нельзя."
+  Write-Host "JDK 21 or newer was not found. Do not save the path of the current java command while it is version 17."
   exit 1
 }
 
@@ -107,10 +108,11 @@ if (Test-Path -LiteralPath $mcpPath) {
 $servers["bsl-syntax"] = $server
 $document = [ordered]@{ mcpServers = $servers }
 $json = $document | ConvertTo-Json -Depth 6
-[System.IO.File]::WriteAllText($mcpPath, $json, [System.Text.UTF8Encoding]::new($false))
+$utf8 = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText($mcpPath, $json, $utf8)
 
-Write-Host "Записан файл: $mcpPath"
+Write-Host "Wrote: $mcpPath"
 Write-Host "python: $python"
 Write-Host "java:   $javaExe"
 Write-Host "jar:    $jar"
-Write-Host "Полностью закройте Cursor и откройте снова."
+Write-Host "Close Cursor completely, then open it again."
