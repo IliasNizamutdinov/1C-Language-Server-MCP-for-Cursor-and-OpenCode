@@ -72,6 +72,8 @@ if (-not $javaExe) {
   Write-Host "JDK 21 or newer was not found. Do not save the path of the current java command while it is version 17."
   exit 1
 }
+[Environment]::SetEnvironmentVariable("BSL_JAVA", $javaExe, "User")
+$env:BSL_JAVA = $javaExe
 
 $server = [ordered]@{
   type    = "stdio"
@@ -79,7 +81,7 @@ $server = [ordered]@{
   args    = @("-m", "bsl_mcp")
   env     = [ordered]@{
     BSL_LANGUAGE_SERVER_JAR = $jar
-    BSL_JAVA                = $javaExe
+    BSL_JAVA                = '${env:BSL_JAVA}'
     BSL_MCP_ALLOWED_ROOTS   = '${workspaceFolder}'
     BSL_MCP_TIMEOUT         = "180"
     BSL_MCP_FAIL_ON         = "syntax"
@@ -114,5 +116,6 @@ $utf8 = New-Object System.Text.UTF8Encoding $false
 Write-Host "Wrote: $mcpPath"
 Write-Host "python: $python"
 Write-Host "java:   $javaExe"
+Write-Host "mcp.json keeps the name of the variable: `${env:BSL_JAVA}"
 Write-Host "jar:    $jar"
 Write-Host "Close Cursor completely, then open it again."

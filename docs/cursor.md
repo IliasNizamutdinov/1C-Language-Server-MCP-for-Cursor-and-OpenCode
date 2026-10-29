@@ -19,7 +19,13 @@ Test-Path "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode\.venv
 
 Ожидается `True`. Если `False`, шаг 5 из [windows.md](windows.md) ещё не выполнен: окружение не создано, и Cursor пишет «Системе не удается найти указанный путь». В журнале эта фраза часто выглядит как кракозябры, а следом идёт `Connection closed`.
 
-`BSL_JAVA` берётся из переменной пользователя. В ней должен быть путь к `java.exe` из JDK 21 или новее, а не слово `java` и не путь Java 17. Проверка:
+В `mcp.json` не записывайте полный путь к `java.exe`. Укажите переменную среды, Cursor подставит её сам:
+
+```json
+"BSL_JAVA": "${env:BSL_JAVA}"
+```
+
+Сама переменная Windows должна содержать путь к `java.exe` из JDK 21 или новее, а не слово `java` и не путь Java 17. Проверка:
 
 ```powershell
 & $env:BSL_JAVA -version
