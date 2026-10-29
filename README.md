@@ -164,6 +164,15 @@ $env:BSL_MCP_ALLOWED_ROOTS = (Get-Location).Path
 
 Если PowerShell отказывается активировать окружение, выполните `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 
+Окружение `.venv` выключается вместе с окном. В новом окне включите его снова:
+
+```powershell
+Set-Location "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
+.\.venv\Scripts\Activate.ps1
+```
+
+В приглашении должно появиться `(.venv)`.
+
 ### Первые проверки
 
 ```powershell
