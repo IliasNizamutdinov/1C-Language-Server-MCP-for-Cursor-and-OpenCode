@@ -174,6 +174,43 @@ def test_real_stray_endprocedure_is_not_reported(tmp_path: Path) -> None:
     assert result["syntax_error_count"] == 0
 
 
+def test_compatibility_mode_rejects_member_unknown_in_8_3(tmp_path: Path) -> None:
+    (tmp_path / "Configuration.xml").write_text(
+        "<Configuration><CompatibilityMode>Version8_3_10</CompatibilityMode></Configuration>",
+        encoding="utf-8",
+    )
+    module = tmp_path / "Async.bsl"
+    module.write_text(
+        'Асинх Процедура Пример()\n'
+        '\tЖдать ВопросАсинх("Да?", РежимДиалогаВопрос.ДаНет);\n'
+        "КонецПроцедуры\n",
+        encoding="utf-8",
+    )
+    old_mode = service(tmp_path).check_project(str(tmp_path))
+    assert old_mode["compatibility"]["target_version"] == "8.3.10"
+    assert old_mode["status"] == "failed"
+    codes = [
+        item["code"]
+        for file_info in old_mode["files"]
+        for item in file_info["syntax_errors"]
+    ]
+    assert "UnavailableMemberCall" in codes
+    new_mode = service(tmp_path).check_file(str(module), compatibility_mode="8.5")
+    assert new_mode["compatibility"]["target_version"] == "8.5"
+    assert new_mode["status"] == "passed"
+    assert new_mode["syntax_error_count"] == 0
+
+
+def test_colon_parameter_type_is_parse_error_for_8_3_and_8_5(tmp_path: Path) -> None:
+    code = "Процедура Пример(Количество: Число)\n\tА = 1;\nКонецПроцедуры\n"
+    for mode in ("8.3.10", "8.5"):
+        result = service(tmp_path).check_code(code, "Typed.bsl", compatibility_mode=mode)
+        assert result["status"] == "failed"
+        assert result["type_check"]["method_variable_types"] is False
+        codes = [item["code"] for item in result["files"][0]["syntax_errors"]]
+        assert "ParseError" in codes
+
+
 def test_stdio_lists_tools_and_checks_code_twice() -> None:
     import anyio
     from mcp import ClientSession

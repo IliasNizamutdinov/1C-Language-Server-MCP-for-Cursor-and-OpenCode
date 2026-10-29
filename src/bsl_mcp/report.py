@@ -5,7 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
-from bsl_mcp.constants import STATUS_TEXT, SYNTAX_DIAGNOSTIC_CODES
+from bsl_mcp.constants import (
+    COMPATIBILITY_DIAGNOSTIC_CODES,
+    STATUS_TEXT,
+    SYNTAX_DIAGNOSTIC_CODES,
+)
 
 
 def file_uri_to_path(value: str) -> Path | None:
@@ -29,6 +33,8 @@ def _display_position(value: object) -> int | None:
 
 
 def _category(code: str, severity: str, syntax: bool) -> str:
+    if code in COMPATIBILITY_DIAGNOSTIC_CODES:
+        return "несовместимость с режимом совместимости"
     if syntax:
         return "синтаксическая ошибка"
     return {
@@ -49,7 +55,7 @@ def _diagnostic(raw: object, file_name: str) -> dict[str, object] | None:
     range_info = raw.get("range") if isinstance(raw.get("range"), dict) else {}
     start = range_info.get("start") if isinstance(range_info.get("start"), dict) else {}
     end = range_info.get("end") if isinstance(range_info.get("end"), dict) else {}
-    syntax = code in SYNTAX_DIAGNOSTIC_CODES
+    syntax = code in SYNTAX_DIAGNOSTIC_CODES or code in COMPATIBILITY_DIAGNOSTIC_CODES
     description = raw.get("codeDescription")
     documentation = None
     if isinstance(description, dict) and isinstance(description.get("href"), str):
@@ -147,7 +153,7 @@ def summarize(
         return "Проверка не выполнена. Анализатор не подтвердил результат."
     parts = [
         f"Проверено файлов: {files_checked}.",
-        f"Синтаксических ошибок: {syntax_error_count}.",
+        f"Синтаксических ошибок и несовместимостей с режимом: {syntax_error_count}.",
     ]
     if analysis_error_count or warning_count:
         parts.append(

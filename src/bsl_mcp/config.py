@@ -98,6 +98,7 @@ class Settings:
     max_files: int = 2000
     max_concurrent: int = 2
     fail_on: str = "syntax"
+    compatibility_mode: str | None = None
     user_configuration: Path | None = None
     extra_exclude_dirs: tuple[str, ...] = ()
     command_prefix: tuple[str, ...] | None = None
@@ -134,6 +135,7 @@ class Settings:
             max_files=_positive_int("BSL_MCP_MAX_FILES", 2000),
             max_concurrent=_positive_int("BSL_MCP_MAX_CONCURRENT", 2),
             fail_on=_fail_on(),
+            compatibility_mode=(os.environ.get("BSL_MCP_COMPATIBILITY_MODE") or "").strip() or None,
             user_configuration=_optional_path("BSL_LANGUAGE_SERVER_CONFIG"),
             extra_exclude_dirs=extra,
         )

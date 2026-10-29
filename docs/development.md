@@ -26,7 +26,7 @@ python scripts\download_bsl_language_server.py $env:BSL_LANGUAGE_SERVER_JAR
 
 ## Тесты
 
-Для интеграционных тестов нужна Java 21: `java -version` должна показать версию 21. Модульные тесты Java не запускают:
+Для интеграционных тестов нужна Java 21 или новее: `java -version` должна показать 21 или выше. Java 17 не подходит. Модульные тесты Java не запускают:
 
 ```powershell
 python -m pytest tests/test_paths.py tests/test_report.py tests/test_service.py
