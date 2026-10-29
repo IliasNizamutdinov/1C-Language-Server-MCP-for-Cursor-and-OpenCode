@@ -12,7 +12,7 @@
       "timeout": 15000,
       "environment": {
         "BSL_LANGUAGE_SERVER_JAR": "C:\\Users\\USER\\.bsl-mcp\\bsl-language-server-1.0.7-exec.jar",
-        "BSL_JAVA": "ПОЛНЫЙ_ПУТЬ_К_JAVA_EXE_ИЗ_JDK_21",
+        "BSL_JAVA": "{env:BSL_JAVA}",
         "BSL_MCP_ALLOWED_ROOTS": "C:\\Users\\USER\\src\\my-1c-project",
         "BSL_MCP_TIMEOUT": "180",
         "BSL_MCP_FAIL_ON": "syntax",

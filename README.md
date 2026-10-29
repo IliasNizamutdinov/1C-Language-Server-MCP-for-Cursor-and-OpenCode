@@ -231,7 +231,7 @@ python -m bsl_mcp
 
 Отдельная инструкция: [docs/opencode.md](docs/opencode.md). Образец: [examples/opencode/opencode.json](examples/opencode/opencode.json). Документация: https://opencode.ai/docs/mcp-servers/.
 
-Конфигурация OpenCode — объект `mcp` и массив `command`, а не `mcpServers` из Cursor. Подстановки `${workspaceFolder}` в образце нет: для локального сервера OpenCode она в документации MCP не описана. Замените пути на свои.
+Конфигурация OpenCode — объект `mcp` и массив `command`, а не `mcpServers` из Cursor. Путь к `python.exe` и каталог исходников замените на свои. Путь к Java не вписывайте: OpenCode читает переменную среды как `{env:BSL_JAVA}`, а Cursor — как `${env:BSL_JAVA}`.
 
 ```json
 {
@@ -248,7 +248,7 @@ python -m bsl_mcp
       "timeout": 15000,
       "environment": {
         "BSL_LANGUAGE_SERVER_JAR": "C:\\Users\\USER\\.bsl-mcp\\bsl-language-server-1.0.7-exec.jar",
-        "BSL_JAVA": "ПОЛНЫЙ_ПУТЬ_К_JAVA_EXE_ИЗ_JDK_21",
+        "BSL_JAVA": "{env:BSL_JAVA}",
         "BSL_MCP_ALLOWED_ROOTS": "C:\\Users\\USER\\src\\my-1c-project",
         "PYTHONIOENCODING": "utf-8",
         "PYTHONUTF8": "1"
