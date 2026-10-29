@@ -13,7 +13,7 @@
 
 ## Готовый фрагмент
 
-Образец: [examples/opencode/opencode.json](../examples/opencode/opencode.json). Замените `C:\\Users\\USER` на свой каталог пользователя. В `BSL_JAVA` вставьте путь из строки `Сохранён путь` шага 2 инструкции Windows: это `java.exe` из JDK 21 или новее, не слово `java` и не путь Java 17. В `BSL_MCP_ALLOWED_ROOTS` укажите каталог исходников 1С. Переменные вида `${workspaceFolder}` OpenCode в этом фрагменте не используются: в документации MCP OpenCode такая подстановка для локальной команды не описана.
+Образец: [examples/opencode/opencode.json](../examples/opencode/opencode.json). Замените `C:\\Users\\USER` на свой каталог пользователя. В `BSL_MCP_ALLOWED_ROOTS` укажите каталог исходников 1С. Путь к Java в файл не записывайте: OpenCode подставляет переменную среды в виде `{env:BSL_JAVA}`. Это не запись Cursor `${env:BSL_JAVA}`. Сама переменная Windows `BSL_JAVA` должна указывать на `java.exe` из JDK 21 или новее.
 
 ```json
 {
@@ -30,7 +30,7 @@
       "timeout": 15000,
       "environment": {
         "BSL_LANGUAGE_SERVER_JAR": "C:\\Users\\USER\\.bsl-mcp\\bsl-language-server-1.0.7-exec.jar",
-        "BSL_JAVA": "ПОЛНЫЙ_ПУТЬ_К_JAVA_EXE_ИЗ_JDK_21",
+        "BSL_JAVA": "{env:BSL_JAVA}",
         "BSL_MCP_ALLOWED_ROOTS": "C:\\Users\\USER\\src\\my-1c-project",
         "PYTHONIOENCODING": "utf-8",
         "PYTHONUTF8": "1"
