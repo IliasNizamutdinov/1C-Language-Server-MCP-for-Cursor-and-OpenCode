@@ -58,7 +58,24 @@ Test-Path "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode\.venv
 2. У `bsl-syntax` должен быть статус подключения без ошибки запуска.
 3. В списке инструментов должны быть `check_bsl_file`, `check_bsl_code`, `check_bsl_files`, `check_bsl_project`.
 
-Если инструментов нет, откройте панель Output и выберите MCP Logs. Затем запустите ту же команду в PowerShell: путь к `python.exe`, аргумент `-m`, модуль `bsl_mcp`. Сообщения сервера идут в stderr и не должны попадать в stdout.
+Если журнал сразу пишет `Connection closed`, а перед этим строка похожа на кракозябры, это сообщение Windows «Системе не удается найти указанный путь». Cursor не нашёл программу из поля `command`. Запись в `mcp.json` сама файл не создаёт. Имя `user-bsl-syntax` значит, что читается пользовательский файл `%USERPROFILE%\.cursor\mcp.json`, а не файл проекта.
+
+Проверка:
+
+```powershell
+Test-Path "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode\.venv\Scripts\python.exe"
+```
+
+`False` значит, что шаг 5 из [windows.md](windows.md) не выполнен или репозиторий лежит в другом каталоге. Пока эта команда не вернёт `True`, сервер не подключится.
+
+Если `True`, из каталога репозитория запишите конфиг проверенными путями:
+
+```powershell
+Set-Location "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
+powershell -ExecutionPolicy Bypass -File .\scripts\configure-cursor-mcp.ps1
+```
+
+Скрипт подставляет существующие `python.exe`, `java.exe` из JDK 21 или новее и jar. Затем полностью закройте Cursor и откройте снова.
 
 ## Ручная проверка модуля
 
