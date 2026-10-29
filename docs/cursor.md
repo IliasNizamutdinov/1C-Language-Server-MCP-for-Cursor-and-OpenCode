@@ -72,6 +72,7 @@ Test-Path "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode\.venv
 
 ```powershell
 Set-Location "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
+git pull
 powershell -ExecutionPolicy Bypass -File .\scripts\configure-cursor-mcp.ps1
 ```
 
