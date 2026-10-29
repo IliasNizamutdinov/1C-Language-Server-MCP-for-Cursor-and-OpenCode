@@ -11,17 +11,30 @@
 
 ## Готовый фрагмент
 
-Скопируйте [examples/cursor/mcp.json](../examples/cursor/mcp.json) и поправьте путь к `python.exe`, если виртуальное окружение лежит не в `%USERPROFILE%\.bsl-mcp\venv`.
+Скопируйте [examples/cursor/mcp.json](../examples/cursor/mcp.json). Каталог `.venv` создаётся установкой внутри клона репозитория, а не в `%USERPROFILE%\.bsl-mcp\venv`. Перед сохранением проверьте, что файл существует:
+
+```powershell
+Test-Path "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode\.venv\Scripts\python.exe"
+```
+
+Ожидается `True`. Если `False`, шаг 5 из [windows.md](windows.md) ещё не выполнен: окружение не создано, и Cursor пишет «Системе не удается найти указанный путь». В журнале эта фраза часто выглядит как кракозябры, а следом идёт `Connection closed`.
+
+`BSL_JAVA` берётся из переменной пользователя. В ней должен быть путь к `java.exe` из JDK 21 или новее, а не слово `java` и не путь Java 17. Проверка:
+
+```powershell
+& $env:BSL_JAVA -version
+```
 
 ```json
 {
   "mcpServers": {
     "bsl-syntax": {
       "type": "stdio",
-      "command": "${userHome}\\.bsl-mcp\\venv\\Scripts\\python.exe",
+      "command": "${userHome}\\1C-Language-Server-MCP-for-Cursor-and-OpenCode\\.venv\\Scripts\\python.exe",
       "args": ["-m", "bsl_mcp"],
       "env": {
         "BSL_LANGUAGE_SERVER_JAR": "${userHome}\\.bsl-mcp\\bsl-language-server-1.0.7-exec.jar",
+        "BSL_JAVA": "${env:BSL_JAVA}",
         "BSL_MCP_ALLOWED_ROOTS": "${workspaceFolder}",
         "PYTHONIOENCODING": "utf-8",
         "PYTHONUTF8": "1"
@@ -33,7 +46,7 @@
 
 `BSL_MCP_ALLOWED_ROOTS` разрешает проверять только открытый проект. Сервер не обходит произвольные диски.
 
-Если окружение создано внутри клона этого репозитория, `command` может указывать на `${workspaceFolder}\\.venv\\Scripts\\python.exe`, но тогда в `BSL_MCP_ALLOWED_ROOTS` нужно перечислить и каталог исходников 1С, и каталог инструмента, разделив их точкой с запятой.
+Если клон лежит в другом каталоге, замените `command` на полный путь к его `.venv\Scripts\python.exe`. Когда сервер подключён к проекту 1С, а не к самому репозиторию инструмента, в `BSL_MCP_ALLOWED_ROOTS` через точку с запятой добавьте каталог исходников 1С.
 
 ## Перезапуск
 
