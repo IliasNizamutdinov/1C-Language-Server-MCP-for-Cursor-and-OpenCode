@@ -66,7 +66,7 @@ BSL Language Server — анализатор языка. Он разбирает
 ## Ограничения, подтверждённые на версии 1.0.7
 
 - Проверенная сборка: `bsl-language-server-1.0.7-exec.jar`. Другой релиз может изменить сообщения и коды.
-- Нужна Java 21. Jar 1.0.7 собран под неё (class-файл версии 65.0). Java 17 выдаёт `UnsupportedClassVersionError`.
+- Нужна Java 21 или любая более новая версия. Java 17 и старше неё, но ниже 21, выдают `UnsupportedClassVersionError`: class-файл сборки имеет версию 65.0.
 - Анализируются `.bsl` и `.os`. Файл копируется отдельно от XML метаданных, поэтому диагностики, которым нужна конфигурация, могут быть неполными.
 - Пустой файл анализатор считает допустимым.
 - Файл из одной строки `КонецПроцедуры` в версии 1.0.7 не получает `ParseError`. Это ограничение анализатора, а не успешная проверка платформой.
@@ -100,7 +100,7 @@ java -version
 python --version
 ```
 
-Ожидается Git, Java 21 и Python 3.11+. Команда `java -version` должна показать версию 21. Java 17 для jar 1.0.7 не подходит: `java -jar ... version` завершается `UnsupportedClassVersionError`. Установите JDK 21 с https://adoptium.net/temurin/releases/?version=21 или Microsoft Build of OpenJDK 21 с https://learn.microsoft.com/java/openjdk/download. Чтобы увидеть пакет в winget, выполните `winget search OpenJDK` и установите JDK 21. Python: https://www.python.org/downloads/windows/, с флажком добавления в `PATH`. После установки Java откройте новое окно PowerShell и снова выполните `java -version`. Если там не 21, укажите полный путь к `java.exe` из JDK 21 в переменной `BSL_JAVA`.
+Ожидается Git, Java 21 или новее и Python 3.11+. Команда `java -version` должна показать 21 или выше. Java 17 для jar 1.0.7 не подходит. Установите Microsoft Build of OpenJDK по ссылке, она открывается в отдельном окне: <a href="https://learn.microsoft.com/java/openjdk/download" target="_blank" rel="noopener noreferrer">https://learn.microsoft.com/java/openjdk/download</a>. Выберите JDK 21 или новее. Если Java уже стоит, но это версия ниже 21, полная смена пути описана в [docs/windows.md](docs/windows.md). Python: https://www.python.org/downloads/windows/, с флажком добавления в `PATH`.
 
 ### Анализатор
 
@@ -122,9 +122,12 @@ python scripts\download_bsl_language_server.py "$env:USERPROFILE\.bsl-mcp\bsl-la
 
 ### Репозиторий и окружение
 
+Не клонируйте репозиторий из `C:\WINDOWS\system32`: Windows не даст создать там папку. Сначала перейдите в домашнюю папку.
+
 ```powershell
+Set-Location $env:USERPROFILE
 git clone https://github.com/IliasNizamutdinov/1C-Language-Server-MCP-for-Cursor-and-OpenCode.git
-Set-Location .\1C-Language-Server-MCP-for-Cursor-and-OpenCode
+Set-Location "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[dev]"
@@ -161,7 +164,7 @@ python -m bsl_mcp
 | Переменная | Назначение | По умолчанию |
 | --- | --- | --- |
 | `BSL_LANGUAGE_SERVER_JAR` | Путь к `*-exec.jar` | не задан, проверка не выполняется |
-| `BSL_JAVA` | Полный путь к `java.exe` из JDK 21. Если не задан, используется команда `java`, и она тоже должна быть версии 21 | `java` |
+| `BSL_JAVA` | Полный путь к `java.exe` из JDK 21 или новее. Если не задан, используется команда `java`, и она тоже должна быть версии 21 или выше | `java` |
 | `BSL_JAVA_OPTS` | Аргументы JVM одной строкой | `-Dfile.encoding=UTF-8 -Xmx768m` |
 | `BSL_MCP_ALLOWED_ROOTS` | Разрешённые каталоги через `;` в Windows и `:` в Linux | текущий каталог процесса |
 | `BSL_MCP_TIMEOUT` | Таймаут анализатора, секунды | `180` |

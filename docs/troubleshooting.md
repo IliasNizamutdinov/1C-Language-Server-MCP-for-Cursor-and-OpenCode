@@ -3,8 +3,10 @@
 | Проблема | Вероятная причина | Что сделать |
 | --- | --- | --- |
 | Сервер не запускается | Не найден Python, не установлен пакет `mcp` или ошибка в команде | В том же окружении выполните `python -m bsl_mcp --version`. Ожидается `0.1.0`. Затем `python -m pip install -e ".[dev]"` из корня репозитория. |
-| Java не найдена или `java -version` показывает не 21 | В `PATH` нет JDK 21 | Нужна Java 21. Установите JDK 21, откройте новое окно PowerShell и проверьте `java -version`. Если видна другая версия, укажите полный путь к `java.exe` из JDK 21 в `BSL_JAVA`. |
-| `UnsupportedClassVersionError`, class file version 65.0 | Запущен Java 17 или старше, а jar 1.0.7 собран для Java 21 | Установите JDK 21. В новом окне PowerShell `java -version` должна показать 21. Если видна 17, задайте `BSL_JAVA` полным путём к `java.exe` из JDK 21. Jar заново скачивать не нужно. |
+| Java не найдена или `java -version` показывает версию ниже 21 | В `PATH` стоит Java 17 или другая старая версия раньше JDK 21 | Нужна Java 21 или новее. Установите её по ссылке из `docs/windows.md` и выполните команды смены пути из шага 2. Проверка: `& $env:BSL_JAVA -version`. |
+| `Unable to access jarfile version` | В команде пустая переменная `$jar`, и слово `version` принято за имя файла | Не запускайте отдельно `& $env:BSL_JAVA -jar $jar version`. Сначала `& $env:BSL_JAVA -version`. Проверку jar выполняйте только блоком из шага 4, где `$jar` задаётся в том же фрагменте. |
+| `UnsupportedClassVersionError`, class file version 65.0 | Запущена Java ниже 21, а jar 1.0.7 собран для Java 21 | Подойдёт Java 21 и любая новее. Java 17 не подойдёт. Смените путь по шагу 2 в `docs/windows.md`. Jar заново скачивать не нужно. |
+| `Permission denied` при `git clone` или `Отказано в доступе` для `.venv` | Команды выполнены в `C:\WINDOWS\system32` | Выполните `Set-Location $env:USERPROFILE` и повторите шаг 5 оттуда. |
 | Анализатор не найден | Пустая или неверная `BSL_LANGUAGE_SERVER_JAR` | Укажите путь к `bsl-language-server-1.0.7-exec.jar`, не к маленькому jar без зависимостей и не к zip-архиву. `java -jar <путь> version` печатает `version: 1.0.7`. |
 | Cursor не видит инструменты | Неверный `mcp.json`, сервер выключен или процесс сразу завершился | Проверьте Output → MCP Logs. В конфигурации должны быть `command` и `args`, тип `stdio`. Перезагрузите окно. |
 | OpenCode не видит инструменты | Конфигурация скопирована из Cursor или `timeout` слишком мал | Используйте объект `mcp` и `type: "local"`, а `command` задайте массивом. Увеличьте `timeout` до `15000`. |
