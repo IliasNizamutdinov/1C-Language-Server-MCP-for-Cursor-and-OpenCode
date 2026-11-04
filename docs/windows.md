@@ -66,8 +66,22 @@ python --version
 ```powershell
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.bsl-mcp" | Out-Null
 $jar = "$env:USERPROFILE\.bsl-mcp\bsl-language-server-1.0.7-exec.jar"
-Invoke-WebRequest -Uri "https://github.com/1c-syntax/bsl-language-server/releases/download/v1.0.7/bsl-language-server-1.0.7-exec.jar" -OutFile $jar
+if (-not (Test-Path -LiteralPath $jar)) {
+  Invoke-WebRequest -Uri "https://github.com/1c-syntax/bsl-language-server/releases/download/v1.0.7/bsl-language-server-1.0.7-exec.jar" -OutFile $jar
+}
 (Get-FileHash -Algorithm SHA256 $jar).Hash
+if ([string]::IsNullOrWhiteSpace($env:BSL_JAVA) -or -not (Test-Path -LiteralPath $env:BSL_JAVA)) {
+  $jdk = Get-ChildItem "C:\Program Files\Microsoft" -Directory -Filter "jdk-*" -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -match '^jdk-(\d+)' -and [int]$Matches[1] -ge 21 } |
+    Sort-Object { if ($_.Name -match '^jdk-(\d+)') { [int]$Matches[1] } } -Descending |
+    Select-Object -First 1
+  if (-not $jdk) {
+    throw "Переменная BSL_JAVA пустая, а JDK 21 или новее в C:\Program Files\Microsoft не найден. Сначала установите JDK 21. Не запускайте & `$env:BSL_JAVA, пока переменная пустая."
+  }
+  $env:BSL_JAVA = Join-Path $jdk.FullName "bin\java.exe"
+  [Environment]::SetEnvironmentVariable("BSL_JAVA", $env:BSL_JAVA, "User")
+}
+& $env:BSL_JAVA -version
 & $env:BSL_JAVA -jar $jar version
 ```
 
@@ -75,17 +89,9 @@ Invoke-WebRequest -Uri "https://github.com/1c-syntax/bsl-language-server/release
 
 `9F62765EDD344D66456DA24C906EAF623A03C56E90E5AAFEE466200100909F64`
 
-Последняя команда блока должна напечатать `version: 1.0.7`. Используйте `& $env:BSL_JAVA`, а не `java`: команда `java` может оставаться версии 17 и тогда появится `UnsupportedClassVersionError`, хотя контрольная сумма jar верная. `$jar` должна быть задана в этом же фрагменте. Иначе PowerShell принимает слово `version` за имя файла и пишет `Unable to access jarfile version`.
+Команда `& $env:BSL_JAVA -version` должна показать 21 или новее, а `& $env:BSL_JAVA -jar $jar version` — `version: 1.0.7`.
 
-Если контрольная сумма совпала, установка анализатора закончена. Повторно скачивать jar не нужно.
-
-Проверка самой Java, без jar:
-
-```powershell
-& $env:BSL_JAVA -version
-```
-
-Ожидается Java 21 или новее. Если версия ниже 21, вернитесь к шагу 2 и смените путь. Jar заново скачивать не нужно.
+Ошибка «Выражение, расположенное после & в элементе конвейера, выдало недопустимый объект» значит, что `BSL_JAVA` в этом окне пустая. Не запускайте одну строку `& $env:BSL_JAVA ...` отдельно: выполните весь блок выше. Он сам найдёт `java.exe` из JDK 21 или новее и запишет путь в переменную. Команду `java -jar` не используйте, если `java -version` показывает 17.
 
 ## 5. Клонирование и виртуальное окружение
 

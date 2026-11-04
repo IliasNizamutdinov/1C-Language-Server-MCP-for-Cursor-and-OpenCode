@@ -107,16 +107,24 @@ python --version
 ```powershell
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.bsl-mcp" | Out-Null
 $jar = "$env:USERPROFILE\.bsl-mcp\bsl-language-server-1.0.7-exec.jar"
-Invoke-WebRequest -Uri "https://github.com/1c-syntax/bsl-language-server/releases/download/v1.0.7/bsl-language-server-1.0.7-exec.jar" -OutFile $jar
+if (-not (Test-Path -LiteralPath $jar)) {
+  Invoke-WebRequest -Uri "https://github.com/1c-syntax/bsl-language-server/releases/download/v1.0.7/bsl-language-server-1.0.7-exec.jar" -OutFile $jar
+}
 (Get-FileHash -Algorithm SHA256 $jar).Hash
+if ([string]::IsNullOrWhiteSpace($env:BSL_JAVA) -or -not (Test-Path -LiteralPath $env:BSL_JAVA)) {
+  $jdk = Get-ChildItem "C:\Program Files\Microsoft" -Directory -Filter "jdk-*" -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -match '^jdk-(\d+)' -and [int]$Matches[1] -ge 21 } |
+    Sort-Object { if ($_.Name -match '^jdk-(\d+)') { [int]$Matches[1] } } -Descending |
+    Select-Object -First 1
+  if (-not $jdk) { throw "BSL_JAVA пустая, JDK 21 или новее не найден." }
+  $env:BSL_JAVA = Join-Path $jdk.FullName "bin\java.exe"
+  [Environment]::SetEnvironmentVariable("BSL_JAVA", $env:BSL_JAVA, "User")
+}
+& $env:BSL_JAVA -version
 & $env:BSL_JAVA -jar $jar version
 ```
 
-SHA256 официального файла: `9F62765EDD344D66456DA24C906EAF623A03C56E90E5AAFEE466200100909F64`. Последняя команда печатает `version: 1.0.7`.
-
-Не подставляйте сюда команду `java`: если `java -version` показывает 17, появится `UnsupportedClassVersionError`. Сначала выполните шаг смены пути в [docs/windows.md](docs/windows.md), чтобы `BSL_JAVA` указывала на JDK 21 или новее. Переменную `$jar` задайте в этом же блоке.
-
-Если контрольная сумма совпала, jar уже установлен. Дальше его скачивать не нужно.
+SHA256 официального файла: `9F62765EDD344D66456DA24C906EAF623A03C56E90E5AAFEE466200100909F64`. Если `BSL_JAVA` пустая, одна строка `& $env:BSL_JAVA -jar $jar version` даёт ошибку «недопустимый объект». Выполняйте весь блок: он сам находит JDK 21 или новее. Не используйте команду `java`, если `java -version` показывает 17.
 
 ### Репозиторий и окружение
 
