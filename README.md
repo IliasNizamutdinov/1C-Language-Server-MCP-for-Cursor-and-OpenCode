@@ -109,14 +109,17 @@ New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.bsl-mcp" | Out-Null
 $jar = "$env:USERPROFILE\.bsl-mcp\bsl-language-server-1.0.7-exec.jar"
 Invoke-WebRequest -Uri "https://github.com/1c-syntax/bsl-language-server/releases/download/v1.0.7/bsl-language-server-1.0.7-exec.jar" -OutFile $jar
 (Get-FileHash -Algorithm SHA256 $jar).Hash
-java -jar $jar version
+& $env:BSL_JAVA -jar $jar version
 ```
 
-SHA256 официального файла: `9F62765EDD344D66456DA24C906EAF623A03C56E90E5AAFEE466200100909F64`. Команда `version` печатает `version: 1.0.7`.
+SHA256 официального файла: `9F62765EDD344D66456DA24C906EAF623A03C56E90E5AAFEE466200100909F64`. Последняя команда печатает `version: 1.0.7`.
 
-Тот же файл умеет загрузить скрипт репозитория после установки пакета:
+Не подставляйте сюда команду `java`: если `java -version` показывает 17, появится `UnsupportedClassVersionError`. Сначала выполните шаг смены пути в [docs/windows.md](docs/windows.md), чтобы `BSL_JAVA` указывала на JDK 21 или новее. Переменную `$jar` задайте в этом же блоке.
+
+Скрипт `scripts\download_bsl_language_server.py` лежит только внутри клонированного репозитория. Из `Desktop\Programs` или другого каталога Python отвечает `No such file or directory`. Для скачивания jar он не нужен: блок `Invoke-WebRequest` выше уже сохраняет файл. Скрипт запускайте позже, стоя в корне клона:
 
 ```powershell
+Set-Location "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
 python scripts\download_bsl_language_server.py "$env:USERPROFILE\.bsl-mcp\bsl-language-server-1.0.7-exec.jar"
 ```
 

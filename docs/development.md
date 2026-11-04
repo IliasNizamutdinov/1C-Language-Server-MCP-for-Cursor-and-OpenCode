@@ -14,7 +14,10 @@
 
 ## Окружение разработчика
 
+Команды ниже выполняйте из корня уже клонированного репозитория. Иначе `python scripts\download_bsl_language_server.py` не найдёт файл.
+
 ```powershell
+Set-Location "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[dev]"
