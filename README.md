@@ -303,34 +303,37 @@ python -m bsl_mcp
 
 ## OpenCode
 
-Отдельная инструкция: [docs/opencode.md](docs/opencode.md). Образец: [examples/opencode/opencode.json](examples/opencode/opencode.json). Документация: https://opencode.ai/docs/mcp-servers/.
+Отдельная инструкция: [docs/opencode.md](docs/opencode.md). Образец текущей версии: [examples/opencode/opencode.v2.json](examples/opencode/opencode.v2.json). Документация: https://dev.opencode.ai/v2/docs/mcp-servers.
 
-Конфигурация OpenCode — объект `mcp` и массив `command`, а не `mcpServers` из Cursor. Путь к `python.exe` и каталог исходников замените на свои. Путь к Java не вписывайте: OpenCode читает переменную среды как `{env:BSL_JAVA}`, а Cursor — как `${env:BSL_JAVA}`.
+В новой версии сервер настраивается вручную внутри `mcp.servers`. Путь к `python.exe` и каталог исходников замените на свои. Путь к Java не вписывайте: OpenCode читает переменную среды как `{env:BSL_JAVA}`.
 
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "bsl-syntax": {
-      "type": "local",
-      "command": [
-        "C:\\Users\\USER\\1C-Language-Server-MCP-for-Cursor-and-OpenCode\\.venv\\Scripts\\python.exe",
-        "-m",
-        "bsl_mcp"
-      ],
-      "enabled": true,
-      "timeout": 15000,
-      "environment": {
-        "BSL_LANGUAGE_SERVER_JAR": "C:\\Users\\USER\\.bsl-mcp\\bsl-language-server-1.0.7-exec.jar",
-        "BSL_JAVA": "{env:BSL_JAVA}",
-        "BSL_MCP_ALLOWED_ROOTS": "C:\\Users\\USER\\src\\my-1c-project",
-        "PYTHONIOENCODING": "utf-8",
-        "PYTHONUTF8": "1"
+    "servers": {
+      "bsl-syntax": {
+        "type": "local",
+        "command": [
+          "C:\\Users\\USER\\1C-Language-Server-MCP-for-Cursor-and-OpenCode\\.venv\\Scripts\\python.exe",
+          "-m",
+          "bsl_mcp"
+        ],
+        "codemode": false,
+        "environment": {
+          "BSL_LANGUAGE_SERVER_JAR": "C:\\Users\\USER\\.bsl-mcp\\bsl-language-server-1.0.7-exec.jar",
+          "BSL_JAVA": "{env:BSL_JAVA}",
+          "BSL_MCP_ALLOWED_ROOTS": "C:\\Users\\USER\\src\\my-1c-project",
+          "PYTHONIOENCODING": "utf-8",
+          "PYTHONUTF8": "1"
+        }
       }
     }
   }
 }
 ```
+
+Для прежних версий OpenCode, где имя сервера пишется сразу в `mcp`, оставьте образец [examples/opencode/opencode.json](examples/opencode/opencode.json).
 
 Инструкция агента — [AGENTS.md](AGENTS.md) в корне проекта. Положите такой файл в проект 1С. Как и правило Cursor, он не запускает проверку сам.
 
