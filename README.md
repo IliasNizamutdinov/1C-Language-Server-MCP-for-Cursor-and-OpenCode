@@ -125,12 +125,15 @@ python scripts\download_bsl_language_server.py "$env:USERPROFILE\.bsl-mcp\bsl-la
 
 ### Репозиторий и окружение
 
-Не клонируйте репозиторий из `C:\WINDOWS\system32`: Windows не даст создать там папку. Сначала перейдите в домашнюю папку.
+Не клонируйте репозиторий из `C:\WINDOWS\system32`. Сначала перейдите в домашнюю папку. Если каталог клона уже есть, `git clone` повторно не нужен.
 
 ```powershell
-Set-Location $env:USERPROFILE
-git clone https://github.com/IliasNizamutdinov/1C-Language-Server-MCP-for-Cursor-and-OpenCode.git
-Set-Location "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
+$repo = "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
+if (-not (Test-Path -LiteralPath $repo)) {
+  Set-Location $env:USERPROFILE
+  git clone https://github.com/IliasNizamutdinov/1C-Language-Server-MCP-for-Cursor-and-OpenCode.git
+}
+Set-Location $repo
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[dev]"
@@ -146,10 +149,11 @@ $env:BSL_MCP_ALLOWED_ROOTS = (Get-Location).Path
 
 Если PowerShell отказывается активировать окружение, выполните `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 
-Окружение `.venv` выключается вместе с окном. В новом окне включите его снова:
+Окружение `.venv` выключается вместе с окном. В новом окне включите его снова. Если `Set-Location` не находит каталог, репозиторий ещё не клонирован: сначала выполните блок `git clone` выше и не запускайте `Activate.ps1`.
 
 ```powershell
-Set-Location "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
+$repo = "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
+Set-Location $repo
 .\.venv\Scripts\Activate.ps1
 ```
 

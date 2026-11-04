@@ -89,12 +89,20 @@ Invoke-WebRequest -Uri "https://github.com/1c-syntax/bsl-language-server/release
 
 ## 5. Клонирование и виртуальное окружение
 
-Не выполняйте эти команды в `C:\WINDOWS\system32`. У этого каталога нет права на создание папки, поэтому `git clone` отвечает `Permission denied`, а `python -m venv .venv` — `Отказано в доступе`. Если приглашение PowerShell начинается с `PS C:\WINDOWS\system32>`, первая команда ниже переходит в домашнюю папку, например `C:\Users\Имя`.
+Не выполняйте эти команды в `C:\WINDOWS\system32`. У этого каталога нет права на создание папки. Если приглашение начинается с `PS C:\WINDOWS\system32>`, первая команда ниже переходит в домашнюю папку, например `C:\Users\Имя`.
+
+Каталог `$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode` сам не появляется. Его создаёт только успешный `git clone`. Пока `Test-Path` не вернул `True`, не запускайте `Set-Location` в этот каталог и не запускайте `.\.venv\Scripts\Activate.ps1`: PowerShell останется в предыдущей папке и не найдёт `.venv`.
 
 ```powershell
-Set-Location $env:USERPROFILE
-git clone https://github.com/IliasNizamutdinov/1C-Language-Server-MCP-for-Cursor-and-OpenCode.git
-Set-Location "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
+$repo = "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
+if (-not (Test-Path -LiteralPath $repo)) {
+  Set-Location $env:USERPROFILE
+  git clone https://github.com/IliasNizamutdinov/1C-Language-Server-MCP-for-Cursor-and-OpenCode.git
+}
+if (-not (Test-Path -LiteralPath $repo)) {
+  throw "Каталог репозитория не создан. git clone не выполнился. Не запускайте Activate.ps1."
+}
+Set-Location $repo
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[dev]"
@@ -127,18 +135,23 @@ $env:BSL_MCP_ALLOWED_ROOTS = (Get-Location).Path
 
 ## 7. Первая проверка
 
-Окружение `.venv` действует только в том окне PowerShell, где его включили. После закрытия окна оно выключается. В новом окне включите его снова и перейдите в каталог репозитория. Приглашение должно начаться с `(.venv)`.
+Окружение `.venv` действует только в том окне PowerShell, где его включили. После закрытия окна оно выключается. Сначала убедитесь, что каталог репозитория существует. Если `Set-Location` пишет «путь не существует», репозиторий не клонирован: вернитесь к шагу 5 и не запускайте `Activate.ps1`.
 
 ```powershell
-Set-Location "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
+$repo = "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
+if (-not (Test-Path -LiteralPath $repo)) {
+  throw "Нет каталога $repo. Сначала выполните шаг 5 целиком, включая git clone."
+}
+Set-Location $repo
 .\.venv\Scripts\Activate.ps1
 ```
 
-Если PowerShell пишет, что выполнение сценариев отключено, один раз для этого окна выполните:
+Если PowerShell пишет, что выполнение сценариев отключено, один раз для этого окна выполните команды по порядку. `Activate.ps1` запускайте только после успешного `Set-Location`:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-Set-Location "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
+$repo = "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
+Set-Location $repo
 .\.venv\Scripts\Activate.ps1
 ```
 
