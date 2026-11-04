@@ -14,7 +14,7 @@
 
 ## Окружение разработчика
 
-Команды ниже выполняйте из корня уже клонированного репозитория. Иначе `python scripts\download_bsl_language_server.py` не найдёт файл.
+Команды ниже выполняйте из корня уже клонированного репозитория.
 
 ```powershell
 Set-Location "$env:USERPROFILE\1C-Language-Server-MCP-for-Cursor-and-OpenCode"
@@ -22,6 +22,11 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[dev]"
 $env:BSL_LANGUAGE_SERVER_JAR = "$env:USERPROFILE\.bsl-mcp\bsl-language-server-1.0.7-exec.jar"
+```
+
+Если jar ещё не скачан командой `Invoke-WebRequest`, тот же файл можно получить скриптом из корня репозитория. Когда контрольная сумма уже совпала, эту команду пропускайте:
+
+```powershell
 python scripts\download_bsl_language_server.py $env:BSL_LANGUAGE_SERVER_JAR
 ```
 

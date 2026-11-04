@@ -77,7 +77,7 @@ Invoke-WebRequest -Uri "https://github.com/1c-syntax/bsl-language-server/release
 
 Последняя команда блока должна напечатать `version: 1.0.7`. Используйте `& $env:BSL_JAVA`, а не `java`: команда `java` может оставаться версии 17 и тогда появится `UnsupportedClassVersionError`, хотя контрольная сумма jar верная. `$jar` должна быть задана в этом же фрагменте. Иначе PowerShell принимает слово `version` за имя файла и пишет `Unable to access jarfile version`.
 
-Скрипт `python scripts\download_bsl_language_server.py` из этой папки не запускается. Файла `scripts` нет, пока вы не перешли в клонированный репозиторий. Для загрузки jar он не нужен.
+Если контрольная сумма совпала, установка анализатора закончена. Повторно скачивать jar не нужно.
 
 Проверка самой Java, без jar:
 
